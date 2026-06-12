@@ -54,7 +54,7 @@
 #endif
 
 // Uncomment to print DEBUG messages
-//#define DEBUG_PRINT
+#define DEBUG_PRINT
 
 //------------------------------------------------------------------------
 // DCC Receive Routine
@@ -1587,7 +1587,7 @@ void execDccProcessor (DCC_MSG * pDccMsg)
 // the address returned by getOpsAddr doesn't appear to work correctly for this situation
 //
 // (((Dcc.getCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) * 256) + Dcc.getCV(CV_ACCESSORY_DECODER_ADDRESS_LSB) - 1) * 4) + 1
-//
+//   baseAddress = Dcc.getCV(CV_ACCESSORY_DECODER_ADDRESS_LSB) | (Dcc.getCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) << 6);
 //                            if ( (OutputAddress != getOpsAddr()) && (OutputAddress < 2045))
 //
 
@@ -1596,7 +1596,8 @@ void execDccProcessor (DCC_MSG * pDccMsg)
                                               ((pDccMsg->Data[0] & 0x3F) << 2) | 
                                               ((pDccMsg->Data[1] >> 1) & 0x03);
 
-                            int baseAddress = (((readCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) * 256) + readCV(CV_ACCESSORY_DECODER_ADDRESS_LSB) - 1) * 4) + 1;
+//                            int baseAddress = (((readCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) * 256) + readCV(CV_ACCESSORY_DECODER_ADDRESS_LSB) - 1) * 4) + 1;
+                            int baseAddress = readCV(CV_ACCESSORY_DECODER_ADDRESS_LSB & 0b00111111) | (readCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) << 6);
    
                             DB_PRINT ("eDP: msgAddr:%d", msgAddr);
                             DB_PRINT ("eDP: baseAddress:%d", baseAddress);
