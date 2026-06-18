@@ -1680,40 +1680,17 @@ void execDccProcessor (DCC_MSG * pDccMsg)
 NmraDcc::NmraDcc()
 {
     eepromOffset = 0;
-
-// Add this inside the NmraDcc::NmraDcc() constructor body:
-isDualPinMode = false;
-dccPinA = 0;
-dccPinB = 0;
-lastEdgeTick = 0;
-halfBitState = 0;
-currentBit = 0;
-dccTim = nullptr;
-
 }
 
 NmraDcc::NmraDcc(int offset)
 {
     eepromOffset = offset;
-
-// Add this inside the NmraDcc::NmraDcc() constructor body:
-isDualPinMode = false;
-dccPinA = 0;
-dccPinB = 0;
-lastEdgeTick = 0;
-halfBitState = 0;
-currentBit = 0;
-dccTim = nullptr;
-
 }
 
 #ifdef digitalPinToInterrupt
 void NmraDcc::pin (uint8_t ExtIntPinNum, uint8_t EnablePullup)
 {
     pin (digitalPinToInterrupt (ExtIntPinNum), ExtIntPinNum, EnablePullup);
-
-    // Add this inside the legacy void NmraDcc::pin(...) function body:
-isDualPinMode = false;
 }
 #endif
 
@@ -1747,10 +1724,6 @@ void NmraDcc::pin (uint8_t ExtIntNum, uint8_t ExtIntPinNum, uint8_t EnablePullup
     DccProcState.ExtIntMask = 1;
     #endif
     pinMode (ExtIntPinNum, EnablePullup ? INPUT_PULLUP : INPUT);
-
-// Add this inside the legacy void NmraDcc::pin(...) function body:
-isDualPinMode = false;
-
 }
 
 ////////////////////////////////////////////////////////////////////////

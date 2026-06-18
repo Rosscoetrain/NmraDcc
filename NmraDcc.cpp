@@ -46,11 +46,11 @@
 //
 //------------------------------------------------------------------------
 
-#include "NmraDcc.h"
+#include "NmraDcc2.h"
 #ifdef ARDUINO_SAMD_ZERO
 #include <FlashStorage_SAMD.h>
 #else
-#include "EEPROM.h"
+#include <EEPROM.h>
 #endif
 
 // Uncomment to print DEBUG messages
@@ -1680,17 +1680,40 @@ void execDccProcessor (DCC_MSG * pDccMsg)
 NmraDcc::NmraDcc()
 {
     eepromOffset = 0;
+
+// Add this inside the NmraDcc::NmraDcc() constructor body:
+isDualPinMode = false;
+dccPinA = 0;
+dccPinB = 0;
+lastEdgeTick = 0;
+halfBitState = 0;
+currentBit = 0;
+dccTim = nullptr;
+
 }
 
 NmraDcc::NmraDcc(int offset)
 {
     eepromOffset = offset;
+
+// Add this inside the NmraDcc::NmraDcc() constructor body:
+isDualPinMode = false;
+dccPinA = 0;
+dccPinB = 0;
+lastEdgeTick = 0;
+halfBitState = 0;
+currentBit = 0;
+dccTim = nullptr;
+
 }
 
 #ifdef digitalPinToInterrupt
 void NmraDcc::pin (uint8_t ExtIntPinNum, uint8_t EnablePullup)
 {
     pin (digitalPinToInterrupt (ExtIntPinNum), ExtIntPinNum, EnablePullup);
+
+    // Add this inside the legacy void NmraDcc::pin(...) function body:
+isDualPinMode = false;
 }
 #endif
 
@@ -1724,6 +1747,10 @@ void NmraDcc::pin (uint8_t ExtIntNum, uint8_t ExtIntPinNum, uint8_t EnablePullup
     DccProcState.ExtIntMask = 1;
     #endif
     pinMode (ExtIntPinNum, EnablePullup ? INPUT_PULLUP : INPUT);
+
+// Add this inside the legacy void NmraDcc::pin(...) function body:
+isDualPinMode = false;
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1909,3 +1936,64 @@ uint8_t NmraDcc::process()
 
     return 0 ;
 };
+
+
+
+//------------------------------------------------------------------------
+// Method: pinDual
+// purpose: High-Precision parallel dual-pin differential initializer.
+//------------------------------------------------------------------------
+void NmraDcc::pinDual(uint8_t pinA, uint8_t pinB) {
+  isDualPinMode = true;
+  dccPinA = pinA;
+  dccPinB = pinB;
+
+  pinMode(dccPinA, INPUT_PULLUP);
+  pinMode(dccPinB, INPUT_PULLUP);
+
+  // Deploy high-resolution 1us counter natively to optimize stm32 timeline sampling
+  dccTim = new HardwareTimer(TIM1);
+  dccTim->setPrescaleFactor(SystemCoreClock / 1000000); 
+  dccTim->setOverflow(0xFFFF);                          
+  dccTim->resume();                                     
+}
+
+//------------------------------------------------------------------------
+// Method: processDualPinsISR
+// purpose: High-Efficiency Dual-Pin ISR engine analyzing signal wave deltas.
+//------------------------------------------------------------------------
+void NmraDcc::processDualPinsISR() {
+  if (!isDualPinMode || !dccTim) return;
+
+  uint32_t currentTick = dccTim->getCount();
+  uint32_t duration = 0;
+
+  if (currentTick >= lastEdgeTick) {
+    duration = currentTick - lastEdgeTick;
+  } else {
+    duration = (0xFFFF - lastEdgeTick) + currentTick;
+  }
+  lastEdgeTick = currentTick;
+
+  if (duration < 30) return; // Eliminate noise floor spikes
+
+  // Midpoint timing separator boundary (75us) splitting '1' bits (~58us) and '0' bits (~100us)
+  uint8_t decodedBit = (duration < 75) ? 1 : 0;
+
+  if (halfBitState == 0) {
+    currentBit = decodedBit;
+    halfBitState = 1;
+  } else {
+    if (decodedBit == currentBit) {
+      // SUCCESS: Since ExternalInterruptHandler() shares the exact same C++ linkage
+      // and is defined earlier in this file, we call it directly here.
+      ExternalInterruptHandler();
+    }
+    halfBitState = 0;
+  }
+}
+
+
+// Fallback Baseline Weak Symbol Implementations
+void notifyDccExtendedAccessoryOutput(uint16_t receivedAddress, uint8_t dataPayload) {}
+void notifyDccCVProgram(uint16_t targetCv, uint8_t dataPayload) {}

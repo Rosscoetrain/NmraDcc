@@ -232,6 +232,17 @@ class NmraDcc
 private:
     DCC_MSG Msg ;
 
+
+// Add these to the PRIVATE section of class NmraDcc:
+bool           isDualPinMode;
+uint8_t        dccPinA;
+uint8_t        dccPinB;
+uint32_t       lastEdgeTick;
+uint8_t        halfBitState;
+uint8_t        currentBit;
+HardwareTimer *dccTim;
+
+
 public:
     NmraDcc();
     NmraDcc(int Eeprom_Offset);
@@ -422,6 +433,12 @@ public:
     uint8_t getState (void);
     uint8_t getNestedIrqCount (void);
     #endif
+
+
+    // Add these to the PUBLIC section of class NmraDcc:
+    void pinDual(uint8_t pinA, uint8_t pinB);
+    void processDualPinsISR();
+
 
 };
 
@@ -802,6 +819,12 @@ extern void notifySystemTime( uint16_t MillisSinceStartup) __attribute__ ( (weak
 // Don't use in new designs. These functions may be dropped in future versions
 extern void notifyDccAccState (uint16_t Addr, uint16_t BoardAddr, uint8_t OutputAddr, uint8_t State) __attribute__ ( (weak));
 extern void notifyDccSigState (uint16_t Addr, uint8_t OutputIndex, uint8_t State) __attribute__ ( (weak));
+
+
+// Add these alongside the other extern callback declarations:
+extern void notifyDccExtendedAccessoryOutput(uint16_t receivedAddress, uint8_t dataPayload) __attribute__((weak));
+extern void notifyDccCVProgram(uint16_t targetCv, uint8_t dataPayload) __attribute__((weak));
+
 
 #if defined (__cplusplus)
 }

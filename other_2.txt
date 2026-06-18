@@ -28,7 +28,8 @@ Locate the existing single-pin initialization function void NmraDcc::pin(...) an
 // Add this inside the legacy void NmraDcc::pin(...) function body:
 isDualPinMode = false;
 
-Locate the packet parsing loop inside void NmraDcc::parseDccPacket() where 3-byte packets are processed (if (totalBytes == 3)) and insert the Extended Accessory handler into the else branch:
+Locate the packet parsing loop inside void NmraDcc::parseDccPacket() where 3-byte packets are processed (if (totalBytes == 3))
+ and insert the Extended Accessory handler into the else branch:
 
 // Replace the inside of the "if (totalBytes == 3)" block with this:if (dcc_rx_buffer[1] & 0x80) {
   // Paragraph 2.4.1 Basic Accessory Packet Type
@@ -48,7 +49,8 @@ Locate the packet parsing loop inside void NmraDcc::parseDccPacket() where 3-byt
   }
 }
 
-Locate the 5-byte packet handling block inside void NmraDcc::parseDccPacket() (else if (totalBytes == 5 ...)) and update the write_command_type validation check to invoke the custom programming hook:
+Locate the 5-byte packet handling block inside void NmraDcc::parseDccPacket() (else if (totalBytes == 5 ...))
+ and update the write_command_type validation check to invoke the custom programming hook:
 
 // Replace the "if (write_command_type == 3)" sub-block with this:if (write_command_type == 3) { 
   if (notifyDccCVProgram != nullptr) {
@@ -61,7 +63,10 @@ Locate the 5-byte packet handling block inside void NmraDcc::parseDccPacket() (e
 Append the new dual-pin tracking implementation and fallback weak hooks to the very end of NmraDcc.cpp:
 
 // Append this entire block to the very end of NmraDcc.cpp:
-//------------------------------------------------------------------------// Method: pinDual// purpose: High-Precision parallel dual-pin differential initializer.//------------------------------------------------------------------------void NmraDcc::pinDual(uint8_t pinA, uint8_t pinB) {
+//------------------------------------------------------------------------
+// Method: pinDual// purpose: High-Precision parallel dual-pin differential initializer.
+//------------------------------------------------------------------------
+void NmraDcc::pinDual(uint8_t pinA, uint8_t pinB) {
   isDualPinMode = true;
   dccPinA = pinA;
   dccPinB = pinB;
@@ -75,7 +80,11 @@ Append the new dual-pin tracking implementation and fallback weak hooks to the v
   dccTim->setOverflow(0xFFFF);                          
   dccTim->resume();                                     
 }
-//------------------------------------------------------------------------// Method: processDualPinsISR// purpose: High-Efficiency Dual-Pin ISR engine analyzing signal wave deltas.//------------------------------------------------------------------------void NmraDcc::processDualPinsISR() {
+
+//------------------------------------------------------------------------
+// Method: processDualPinsISR// purpose: High-Efficiency Dual-Pin ISR engine analyzing signal wave deltas.
+//------------------------------------------------------------------------
+void NmraDcc::processDualPinsISR() {
   if (!isDualPinMode || !dccTim) return;
 
   uint32_t currentTick = dccTim->getCount();
@@ -104,7 +113,9 @@ Append the new dual-pin tracking implementation and fallback weak hooks to the v
     halfBitState = 0;
   }
 }
-// Fallback Baseline Weak Symbol Implementationsvoid notifyDccExtendedAccessoryOutput(uint16_t receivedAddress, uint8_t dataPayload) {}void notifyDccCVProgram(uint16_t targetCv, uint8_t dataPayload) {}
+// Fallback Baseline Weak Symbol Implementations
+void notifyDccExtendedAccessoryOutput(uint16_t receivedAddress, uint8_t dataPayload) {}
+void notifyDccCVProgram(uint16_t targetCv, uint8_t dataPayload) {}
 
 ------------------------------
 To verify these additions on your hardware layout, do you want to see an example of a complete src/main.cpp layout implementing these new callback structures?
