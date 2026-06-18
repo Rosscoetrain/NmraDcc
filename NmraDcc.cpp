@@ -46,7 +46,7 @@
 //
 //------------------------------------------------------------------------
 
-#include "NmraDcc2.h"
+#include "NmraDcc.h"
 #ifdef ARDUINO_SAMD_ZERO
 #include <FlashStorage_SAMD.h>
 #else
@@ -1681,7 +1681,8 @@ NmraDcc::NmraDcc()
 {
     eepromOffset = 0;
 
-// Add this inside the NmraDcc::NmraDcc() constructor body:
+#ifdef STM32C031xx
+// RT Add this inside the NmraDcc::NmraDcc() constructor body:
 isDualPinMode = false;
 dccPinA = 0;
 dccPinB = 0;
@@ -1689,6 +1690,7 @@ lastEdgeTick = 0;
 halfBitState = 0;
 currentBit = 0;
 dccTim = nullptr;
+#endif
 
 }
 
@@ -1696,7 +1698,8 @@ NmraDcc::NmraDcc(int offset)
 {
     eepromOffset = offset;
 
-// Add this inside the NmraDcc::NmraDcc() constructor body:
+#ifdef STM32C031xx
+// RT Add this inside the NmraDcc::NmraDcc() constructor body:
 isDualPinMode = false;
 dccPinA = 0;
 dccPinB = 0;
@@ -1704,6 +1707,7 @@ lastEdgeTick = 0;
 halfBitState = 0;
 currentBit = 0;
 dccTim = nullptr;
+#endif
 
 }
 
@@ -1712,8 +1716,10 @@ void NmraDcc::pin (uint8_t ExtIntPinNum, uint8_t EnablePullup)
 {
     pin (digitalPinToInterrupt (ExtIntPinNum), ExtIntPinNum, EnablePullup);
 
-    // Add this inside the legacy void NmraDcc::pin(...) function body:
+#ifdef STM32C031xx
+// RT Add this inside the legacy void NmraDcc::pin(...) function body:
 isDualPinMode = false;
+#endif
 }
 #endif
 
@@ -1748,8 +1754,10 @@ void NmraDcc::pin (uint8_t ExtIntNum, uint8_t ExtIntPinNum, uint8_t EnablePullup
     #endif
     pinMode (ExtIntPinNum, EnablePullup ? INPUT_PULLUP : INPUT);
 
+#ifdef STM32C031xx
 // Add this inside the legacy void NmraDcc::pin(...) function body:
-isDualPinMode = false;
+    isDualPinMode = false;
+#endif
 
 }
 
@@ -1938,7 +1946,7 @@ uint8_t NmraDcc::process()
 };
 
 
-
+#ifdef STM32C031xx
 //------------------------------------------------------------------------
 // Method: pinDual
 // purpose: High-Precision parallel dual-pin differential initializer.
@@ -1997,3 +2005,4 @@ void NmraDcc::processDualPinsISR() {
 // Fallback Baseline Weak Symbol Implementations
 void notifyDccExtendedAccessoryOutput(uint16_t receivedAddress, uint8_t dataPayload) {}
 void notifyDccCVProgram(uint16_t targetCv, uint8_t dataPayload) {}
+#endif

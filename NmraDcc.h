@@ -233,7 +233,8 @@ private:
     DCC_MSG Msg ;
 
 
-// Add these to the PRIVATE section of class NmraDcc:
+#ifdef STM32C031xx
+// RT Add these to the PRIVATE section of class NmraDcc:
 bool           isDualPinMode;
 uint8_t        dccPinA;
 uint8_t        dccPinB;
@@ -241,6 +242,8 @@ uint32_t       lastEdgeTick;
 uint8_t        halfBitState;
 uint8_t        currentBit;
 HardwareTimer *dccTim;
+#endif
+
 
 
 public:
@@ -434,10 +437,11 @@ public:
     uint8_t getNestedIrqCount (void);
     #endif
 
-
-    // Add these to the PUBLIC section of class NmraDcc:
+#ifdef STM32C031xx
+// RT Add these to the PUBLIC section of class NmraDcc:
     void pinDual(uint8_t pinA, uint8_t pinB);
     void processDualPinsISR();
+#endif
 
 
 };
