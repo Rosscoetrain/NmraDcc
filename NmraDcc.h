@@ -439,6 +439,17 @@ public:
 
 #ifdef STM32C031xx
 // RT Add these to the PUBLIC section of class NmraDcc:
+    /*+
+     *  pinDual() is called from setup() and sets up the two pins used to receive DCC packets.
+     *  for STM32 mcu
+     *
+     *  Inputs:
+     *    pinA  - Input pin number.
+     *    pinB  - Input pin number.
+     *
+     *  Returns:
+     *    None.
+     */
     void pinDual(uint8_t pinA, uint8_t pinB);
     void processDualPinsISR();
 #endif
