@@ -106,7 +106,8 @@
 
 // if this is commented out, Zero-Bit_Stretching is not supported
 // ( Bits longer than 2* MAX ONEBIT are treated as error )
-#define SUPPORT_ZERO_BIT_STRETCHING
+//#define SUPPORT_ZERO_BIT_STRETCHING
+
 
 #define MAX_ONEBITFULL  146
 #define MAX_PRAEAMBEL   146
@@ -114,6 +115,16 @@
 #define MIN_ONEBITFULL  82
 #define MIN_ONEBITHALF  35
 #define MAX_BITDIFF     24
+
+
+/*
+#define MAX_ONEBITFULL  146
+#define MAX_PRAEAMBEL   146
+#define MAX_ONEBITHALF  82
+#define MIN_ONEBITFULL  82
+#define MIN_ONEBITHALF  35
+#define MAX_BITDIFF     24
+*/
 
 
 // Debug-Ports
@@ -1568,7 +1579,7 @@ void execDccProcessor (DCC_MSG * pDccMsg)
 // so binary mask needs to be b000000001
 // 
 // to implement need to change first if to
-// if ( ( (pDccMsg->Data[1] & 0b10001000) != 0b10001000) || (pDccMsg->Data[1] & 0b00000001) != 0b00000001) )
+// if ( ( (pDccMsg->Data[1] & 0b10001000) != 0b10001000) || ( (pDccMsg->Data[1] & 0b00000001) != 0b00000001) )
 // 
 //
                         if ( (pDccMsg->Data[1] & 0b10001000) != 0b10001000) 
@@ -1595,6 +1606,7 @@ void execDccProcessor (DCC_MSG * pDccMsg)
                             int msgAddr = ((~pDccMsg->Data[1] & 0x70) << 4) | 
                                               ((pDccMsg->Data[0] & 0x3F) << 2) | 
                                               ((pDccMsg->Data[1] >> 1) & 0x03);
+                            msgAddr = msgAddr - 3;   // -3 offset according to RCN-213
 
 //                            int baseAddress = (((readCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) * 256) + readCV(CV_ACCESSORY_DECODER_ADDRESS_LSB) - 1) * 4) + 1;
                             int baseAddress = readCV(CV_ACCESSORY_DECODER_ADDRESS_LSB & 0b00111111) | (readCV(CV_ACCESSORY_DECODER_ADDRESS_MSB) << 6);
